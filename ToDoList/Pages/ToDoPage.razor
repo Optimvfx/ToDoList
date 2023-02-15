@@ -1,0 +1,74 @@
+﻿@page "/ToDoPage"
+@using ToDoList.Data
+@using ToDoList.Models
+
+@inject TaskContext taskContext
+
+<h2>ToDoPage</h2>
+<h3>Tasks Count: @TaskCount</h3>
+
+<h4>Tasks Complited: @Completed</h4>
+<div class="progress-bar my-2 mx-2" role="progressbar" style="width:@CompletedProcent%" aria-valuemax="100" aria-valuemin="0">
+    @(CompletedProcent)%
+</div>
+
+<h4>Tasks Not Complited: @UnCompleted</h4>
+<div class="progress-bar my-2 mx-2" role="progressbar" style="width:@UnCompletedProcent%" aria-valuemax="100" aria-valuemin="0">
+    @(UnCompletedProcent)%
+</div>
+
+<EditForm Model="taskInput" class="form-inline" OnValidSubmit="AddTask">
+    <input class="form-control mx-2" type="text" @bind-value="taskInput.Title">
+    <input class="form-control mx-2" type="text" @bind-value="taskInput.Description">
+    <button class="btn btn-outline-primary mx-2">Add Task</button>
+</EditForm>
+
+<ul class="list-group my-2">
+    @foreach (var task in taskContext.GetAll())
+    {
+        if (task.IsCompleted)
+        {
+            <li class="list-group-item list-group-item-success mx-2" @onclick="(() => Remove(task.Id))">
+                <p1>@task.Title</p1>
+                <p3>@task.Description</p3>
+            </li>
+        }
+        else
+        {
+            <li class="list-group-item list-group-item-secondary mx-2 " @onclick="(() => Complete(task.Id))">
+                <p1>@task.Title</p1>
+                <p3>@task.Description</p3>
+            </li>
+        }
+    }
+</ul>
+
+@code {
+    protected TaskInput taskInput = new TaskInput();
+
+    public double CompletedProcent => TaskCount > 0 ? (int)(((double)Completed / TaskCount) * 100) : 0; 
+
+    public int UnCompletedProcent => TaskCount > 0 ? (int)(((double)UnCompleted / TaskCount) * 100) : 0; 
+    
+    public int TaskCount => taskContext.GetAll().Count();
+    
+    public int Completed => taskContext.GetAll().Where(task => task.IsCompleted).Count();
+    public int UnCompleted => taskContext.GetAll().Where(task => !task.IsCompleted).Count();
+
+    private void AddTask()
+    {
+        taskContext.Add(taskInput);
+
+        taskInput = new TaskInput();
+    }
+
+    private void Complete(Guid taskId)
+    {
+        taskContext.Complete(taskId);
+    }
+
+    private void Remove(Guid taskId)
+    {
+        taskContext.Remove(taskId);
+    }
+}
